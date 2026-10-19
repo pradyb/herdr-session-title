@@ -7,7 +7,6 @@ them. Every POLL seconds it reads the newly appended
 part of each Claude pane's transcript for `/rename` titles (custom-title lines)
 and renames that pane's workspace to match (its tab, if the workspace has several). Standard library only.
 """
-import fcntl
 import glob
 import hashlib
 import json
@@ -15,6 +14,20 @@ import os
 import subprocess
 import sys
 import time
+
+try:
+    import fcntl
+
+    def lock(f, block=True):
+        fcntl.flock(f, fcntl.LOCK_EX | (0 if block else fcntl.LOCK_NB))
+except ImportError:  # Windows
+    import msvcrt
+
+    def lock(f, block=True):
+        msvcrt.locking(f.fileno(), msvcrt.LK_LOCK if block else msvcrt.LK_NBLCK, 1)
+
+# Detach a child from herdr's process tree: new session on POSIX, DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP on Windows.
+DETACH = {"creationflags": 0x208} if os.name == "nt" else {"start_new_session": True}
 
 HERDR = os.environ.get("HERDR_BIN_PATH") or "herdr"
 SOCKET = os.environ.get("HERDR_SOCKET_PATH")
@@ -87,16 +100,16 @@ def spawn():
     """Start the daemon detached from herdr's startup hook, logging to the state dir."""
     os.makedirs(STATE_DIR, exist_ok=True)
     log = open(os.path.join(STATE_DIR, "daemon.log"), "a")
-    subprocess.Popen([sys.executable, os.path.abspath(__file__), "--daemon"], start_new_session=True,
+    subprocess.Popen([sys.executable, os.path.abspath(__file__), "--daemon"], **DETACH,
                      stdin=subprocess.DEVNULL, stdout=log, stderr=log)
 
 
 def daemon():
     os.makedirs(STATE_DIR, exist_ok=True)
     key = hashlib.sha1((SOCKET or "").encode()).hexdigest()[:12]
-    lock = open(os.path.join(STATE_DIR, f"daemon-{key}.lock"), "w")
+    lock_f = open(os.path.join(STATE_DIR, f"daemon-{key}.lock"), "w")
     try:
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        lock(lock_f, block=False)
     except OSError:
         return  # a daemon is already watching this herdr server
     print(f"watching {SOCKET}", flush=True)

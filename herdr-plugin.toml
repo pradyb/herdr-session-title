@@ -4,7 +4,7 @@ version = "0.1.0"
 # Only 0.9.3 has been tested.
 min_herdr_version = "0.9.3"
 description = "Names a workspace after its Claude Code session (/rename)"
-platforms = ["linux", "macos"]
+platforms = ["linux", "macos", "windows"]
 
 # Spawns a detached daemon that polls Claude transcripts for /rename titles;
 # it exits when the herdr server stops.
