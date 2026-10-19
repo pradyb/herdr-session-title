@@ -37,7 +37,7 @@ POLL = 2  # ponytail: polling, herdr has no event for a Claude /rename
 
 
 def herdr(*args):
-    out = subprocess.run([HERDR, *args], capture_output=True, text=True).stdout
+    out = subprocess.run([HERDR, *args], capture_output=True, encoding="utf-8", errors="replace").stdout
     try:
         return json.loads(out).get("result") or {}
     except ValueError:
