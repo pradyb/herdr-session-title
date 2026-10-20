@@ -1,6 +1,6 @@
 id = "pradyb.session-title"
 name = "Session Title"
-version = "0.1.0"
+version = "0.2.0"
 # Only 0.9.3 has been tested.
 min_herdr_version = "0.9.3"
 description = "Names a workspace after its Claude Code session (/rename)"

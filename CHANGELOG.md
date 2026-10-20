@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0]
+
+### Added
+- **Windows support**: portable file lock, and the background process is detached without flashing console windows
+
+### Changed
+- herdr output is decoded as UTF-8 on every platform (Windows defaults to cp1252)
+
 ## [0.1.0]
 
 First release.
